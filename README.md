@@ -172,6 +172,31 @@ xcodegen generate && open AIME.xcodeproj
 - [ ] 竖排文字方向、候选窗翻页指示
 - [ ] librime 源码可复现构建
 
+## 贡献者
+
+感谢每一位参与共建的朋友：提交过 PR 或 Issue 的人都会列在这里。
+
+**代码**
+
+<p>
+<a href="https://github.com/foru17" title="@foru17"><img src="https://avatars.githubusercontent.com/u/1920586?v=4&s=96" width="48" height="48" alt="@foru17"></a>
+<a href="https://github.com/miantiao-me" title="@miantiao-me"><img src="https://avatars.githubusercontent.com/u/2959393?v=4&s=96" width="48" height="48" alt="@miantiao-me"></a>
+</p>
+
+**反馈与建议**
+
+<p>
+<a href="https://github.com/BlackCCCat" title="@BlackCCCat"><img src="https://avatars.githubusercontent.com/u/44139461?v=4&s=96" width="48" height="48" alt="@BlackCCCat"></a>
+<a href="https://github.com/liustar2011-afk" title="@liustar2011-afk"><img src="https://avatars.githubusercontent.com/u/275464398?v=4&s=96" width="48" height="48" alt="@liustar2011-afk"></a>
+<a href="https://github.com/ShingmoYeung" title="@ShingmoYeung"><img src="https://avatars.githubusercontent.com/u/14231553?v=4&s=96" width="48" height="48" alt="@ShingmoYeung"></a>
+<a href="https://github.com/uu-myheart" title="@uu-myheart"><img src="https://avatars.githubusercontent.com/u/18180275?v=4&s=96" width="48" height="48" alt="@uu-myheart"></a>
+<a href="https://github.com/gaoyuanzong" title="@gaoyuanzong"><img src="https://avatars.githubusercontent.com/u/3156656?v=4&s=96" width="48" height="48" alt="@gaoyuanzong"></a>
+<a href="https://github.com/sunpm" title="@sunpm"><img src="https://avatars.githubusercontent.com/u/35005831?v=4&s=96" width="48" height="48" alt="@sunpm"></a>
+<a href="https://github.com/liuhao320" title="@liuhao320"><img src="https://avatars.githubusercontent.com/u/38712559?v=4&s=96" width="48" height="48" alt="@liuhao320"></a>
+<a href="https://github.com/txchen" title="@txchen"><img src="https://avatars.githubusercontent.com/u/713074?v=4&s=96" width="48" height="48" alt="@txchen"></a>
+<a href="https://github.com/morigith" title="@morigith"><img src="https://avatars.githubusercontent.com/u/73282352?v=4&s=96" width="48" height="48" alt="@morigith"></a>
+</p>
+
 ## 致谢
 
 [RIME / librime](https://github.com/rime/librime) · [鼠须管](https://github.com/rime/squirrel) · [雾凇拼音](https://github.com/iDvel/rime-ice) · [万象拼音](https://github.com/amzxyz/rime_wanxiang) · [白霜拼音](https://github.com/gaboolic/rime-frost) · [rime-essay](https://github.com/rime/rime-essay) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams)

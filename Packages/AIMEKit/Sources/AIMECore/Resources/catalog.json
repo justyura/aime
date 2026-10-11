@@ -1450,6 +1450,15 @@
       "storage": "aime/update.json",
       "key": "receiveBeta",
       "doc": "docs/rime-config-reference.md#更新通道aime-应用设置"
+    },
+    {
+      "id": "ai.extraJSON",
+      "title": "自定义请求体",
+      "type": "string",
+      "default": "",
+      "storage": "aime/features.json",
+      "key": "aiExtraJSON",
+      "doc": "docs/rime-config-reference.md#ai-助手aime-应用设置"
     }
   ]
 }

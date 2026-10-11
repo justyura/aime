@@ -3,6 +3,41 @@ import Testing
 @testable import AIMEAI
 @testable import AIMECore
 
+/// Captures the request body of the next URLSession request and answers with a
+/// canned chat/completions response, so tests can inspect what would be sent.
+final class BodyCapturingProtocol: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var lastBody: [String: Any]?
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        if let stream = request.httpBodyStream,
+           let data = try? Data(reading: stream) {
+            Self.lastBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        }
+        let json = #"{"choices":[{"message":{"content":"OK"}}],"model":"m"}"#.data(using: .utf8)!
+        client?.urlProtocol(self, didReceive: HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: json)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() {}
+}
+
+private extension Data {
+    init(reading stream: InputStream) throws {
+        stream.open()
+        defer { stream.close() }
+        self.init()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable {
+            let n = stream.read(&buffer, maxLength: buffer.count)
+            if n < 0 { throw stream.streamError ?? CocoaError(.coderReadCorrupt) }
+            if n == 0 { break }
+            append(contentsOf: buffer[0..<n])
+        }
+    }
+}
+
 struct MockProvider: AIProvider {
     let id = "mock"
     let displayName = "Mock"
@@ -79,6 +114,7 @@ struct PolishTests {
     @Test func featuresDecodeWithMissingKeys() throws {
         let features = try JSONDecoder().decode(AIMEFeatures.self, from: Data(#"{"usageStats":true}"#.utf8))
         #expect(features.usageStats && !features.aiPolish && !features.aiRemoteAllowed && features.aiProvider == "apple")
+        #expect(features.aiExtraJSON.isEmpty)
     }
 }
 
@@ -128,6 +164,36 @@ struct CredentialAndErrorTests {
         #expect(OpenAICompatibleProvider.explain(status: 429, body: "").contains("额度"))
         #expect(OpenAICompatibleProvider.explain(URLError(.timedOut), host: "api.example.com") == "连接 api.example.com 超时")
         #expect(AIError.http(524, OpenAICompatibleProvider.explain(status: 524, body: "")).description.hasPrefix("HTTP 524："))
+    }
+
+    @Test func extraFieldsParseOnlyJSONObjects() {
+        #expect(OpenAICompatibleProvider.extraFields(from: "").isEmpty)
+        #expect(OpenAICompatibleProvider.extraFields(from: "  ").isEmpty)
+        #expect(OpenAICompatibleProvider.extraFields(from: "not json").isEmpty)
+        #expect(OpenAICompatibleProvider.extraFields(from: "[1,2]").isEmpty)
+        let fields = OpenAICompatibleProvider.extraFields(from: #"{"enable_thinking":false,"n":1}"#)
+        #expect(fields["enable_thinking"] as? Bool == false && fields["n"] as? Int == 1)
+    }
+
+    @Test func reservedKeysAreNeverOverridden() async throws {
+        // A user JSON carrying model/messages/stream must not change what the
+        // program sends: `stream` in particular would switch the response to
+        // SSE, which the client cannot parse.
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("aime-cred-\(UUID().uuidString)/credentials.json")
+        let store = CredentialStore(account: "openai-compatible", fileURL: url)
+        #expect(store.write("sk-test"))
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [BodyCapturingProtocol.self]
+        let provider = OpenAICompatibleProvider(
+            baseURL: URL(string: "https://example.invalid/v1")!, model: "real-model",
+            credentials: store, session: URLSession(configuration: config),
+            extraFieldsJSON: #"{"model":"fake","messages":[],"stream":true,"temperature":0.9}"#)
+        _ = try? await provider.verify()
+        let sentBody = BodyCapturingProtocol.lastBody
+        #expect(sentBody?["model"] as? String == "real-model")
+        #expect((sentBody?["messages"] as? [[String: String]])?.first?["role"] == "user")
+        #expect(sentBody?["stream"] == nil)
+        #expect(sentBody?["temperature"] as? Double == 0.9)
     }
 
     @Test func missingKeyFailsBeforeAnyRequest() async {

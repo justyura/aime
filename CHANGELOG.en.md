@@ -12,6 +12,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- Settings › AI Assistant › OpenAI-compatible endpoint: a new Custom request body field accepts any JSON object whose top-level fields are merged into every request body (model, messages and stream stay under program control). A row of “disable thinking” buttons fills in the right parameter for DeepSeek, Gemini, GLM, Kimi, OpenAI, OpenRouter and Qwen.
+
 ## [0.1.8] - 2026-10-10
 
 > Stable release · Developer ID signed · notarized by Apple

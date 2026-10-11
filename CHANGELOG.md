@@ -11,6 +11,10 @@ AIME 每个版本面向用户的变动都记在这里，官网「更新日志」
 
 ## [Unreleased]
 
+### 新增
+
+- 设置 › AI 助手 › OpenAI 兼容接口：新增「自定义请求体」，可输入任意 JSON 对象，顶层字段会合并进每次请求的 body（model、messages、stream 由程序控制）。下方一排「关闭思考」按钮可一键填入 DeepSeek、Gemini、GLM、Kimi、OpenAI、OpenRouter、Qwen 各家的关闭思考参数。
+
 ## [0.1.8] - 2026-10-10
 
 > 正式版 · Developer ID 签名 · 已通过 Apple 公证

@@ -692,3 +692,11 @@ catalog: ascii_state.scope
 这是应用偏好，不写 RIME YAML；catalog 的 `appSettings` 登记此类非 RIME 设置，`settings` 仍仅用于 RIME 补丁。
 
 catalog: update.receiveBeta
+
+
+## AI 助手（AIME 应用设置）
+
+设置 › AI 助手 › OpenAI 兼容接口的「自定义请求体」存于 `aime/features.json` 的 `aiExtraJSON` 字段。
+用户填入的 JSON 对象的顶层字段会合并进每次 chat/completions 请求的 body，可覆盖 `temperature`、`max_tokens` 等参数；`model`、`messages`、`stream` 由程序控制，不会被覆盖。非法 JSON 不发送。
+
+catalog: ai.extraJSON
