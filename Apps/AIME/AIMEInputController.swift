@@ -29,9 +29,6 @@ final class AIMEInputController: IMKInputController {
     private var capsSwitch = CapsLockSourceSwitch()
     /// 输入图层: committed text waiting at the cursor (underlined) until it is confirmed.
     var draft = DraftBuffer()
-    /// Read only on an explicit paste; tests can supply synthetic text without the
-    /// user's pasteboard. No clipboard polling or text logging.
-    var clipboardText: () -> String? = { NSPasteboard.general.string(forType: .string) }
     /// What was just inserted into this field, so AI actions can work on "what I just
     /// typed" without a selection. Memory only; verified against the app before use.
     var recentText = RecentText()
@@ -253,13 +250,6 @@ final class AIMEInputController: IMKInputController {
                 else { engine.showStatus("没有可处理的文字：先打一段字，或选中一段文字") }
                 return true
             }
-            // Paste joins the local draft before the generic shortcut path can flush
-            // it. Menu/AI shortcuts keep their existing priority.
-            if event.modifierFlags.intersection([.command, .control, .option, .shift]) == .command,
-               event.charactersIgnoringModifiers?.lowercased() == "v",
-               pasteIntoDraft(client: client, session: session) {
-                return true
-            }
             // A pending draft (nothing being composed): Return / Esc confirm it, ⌫ edits
             // it, navigation and shortcuts confirm it and then reach the app.
             if !draft.isEmpty, !isComposing {
@@ -429,54 +419,6 @@ final class AIMEInputController: IMKInputController {
             hasMarkedText = false
             recentText.append(overflow)
         }
-    }
-
-    /// ⌘V appends plain text without inserting into the host. Return/Esc and the
-    /// user's auto-commit preference still confirm the draft in the usual way.
-    private func pasteIntoDraft(client: (any IMKTextInput)?, session: RimeSession) -> Bool {
-        guard draftLayerActive, let client else { return false }
-        defer { rememberAsciiMode() }
-        guard let pasted = clipboardText() else {
-            engine.showStatus("输入图层支持纯文本粘贴")
-            return true
-        }
-        guard !pasted.isEmpty else { return true }
-        let context = session.context()
-        if context.isComposing, context.candidates.isEmpty || context.commitTextPreview == nil {
-            engine.showStatus("请先选词或取消组字，再粘贴")
-            return true
-        }
-        // A previous client-less callback may have left a real commit queued. Keep
-        // it before the pasted text and include it in the capacity check.
-        if !context.isComposing { sync(client: client, commitToDraft: true) }
-        let preview = context.isComposing ? context.commitTextPreview ?? "" : ""
-        guard draft.canPaste(pasted, afterComposition: preview) else {
-            engine.showStatus("文字过长，请先上屏后在应用中粘贴")
-            return true
-        }
-        draftTimer?.cancel()
-        if context.isComposing {
-            let accepted = session.commitComposition()
-            let committed = session.consumeCommit()
-            if let committed {
-                // Keep the actual formatter output, even if it exceeds the preview.
-                // Normal append/sync could overflow or insert pure punctuation.
-                engine.usage.record(committed, app: bundleID)
-                lastCommitted = committed
-                draft.replace(with: draft.text + committed)
-            }
-            sync(client: client, commitToDraft: true)
-            guard accepted, committed != nil, !isComposing else {
-                engine.showStatus("请先选词或取消组字，再粘贴")
-                return true
-            }
-        }
-        guard draft.paste(pasted) else {
-            engine.showStatus("文字过长，请先上屏后在应用中粘贴")
-            return true
-        }
-        sync(client: client, commitToDraft: true)
-        return true
     }
 
     /// Puts the draft into the app (replacing the marked text that showed it).

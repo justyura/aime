@@ -23,6 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Fixed
 
 - With “Use the Caps Lock key to switch to and from ABC” turned on in System Settings, switching from AIME to ABC and back with Caps Lock left AIME in English until you pressed Shift or restarted the input method (introduced in 0.1.8). AIME now comes back in the Chinese/English state it had before the switch.
+- With the draft layer on, pasting with ⌘V into web text fields such as X in Chrome could drop parts of multi-line or long text, and text over 300 characters was blocked. ⌘V is now always the app’s own paste: any pending draft is committed first, then the app pastes.
 
 ## [0.1.8] - 2026-10-10
 
