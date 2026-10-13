@@ -25,6 +25,8 @@ final class AIMEInputController: IMKInputController {
     var quickMenu: QuickMenu?
     /// Holding one modifier on its own opens the quick menu (keyboard-only entry).
     var menuHold = ModifierHold()
+    /// Caps Lock presses that macOS spends on switching to and from ABC.
+    private var capsSwitch = CapsLockSourceSwitch()
     /// 输入图层: committed text waiting at the cursor (underlined) until it is confirmed.
     var draft = DraftBuffer()
     /// Read only on an explicit paste; tests can supply synthetic text without the
@@ -116,6 +118,15 @@ final class AIMEInputController: IMKInputController {
                                  isActive: engine.activeController === self)
     }
 
+    /// A Caps Lock press right before deactivation was macOS switching to ABC; undo the
+    /// 中/英 toggle librime made for it so switching back keeps the earlier state.
+    private func undoCapsLockSourceSwitch() {
+        guard let restore = capsSwitch.deactivated(at: Date()), engine.activeController === self,
+              let session = liveSession, session.option("ascii_mode") != restore else { return }
+        DebugLog.write("ascii caps-lock source switch: restore ascii=\(restore)")
+        session.setOption("ascii_mode", restore)
+    }
+
     // MARK: - IMKStateSetting
 
     nonisolated override func activateServer(_ sender: Any!) {
@@ -149,6 +160,7 @@ final class AIMEInputController: IMKInputController {
         nonisolated(unsafe) let this = self, client = sender as? any IMKTextInput
         MainActor.assumeIsolated {
             DebugLog.write("deactivate app=\(this.bundleID ?? "?")")
+            this.undoCapsLockSourceSwitch()
             this.rememberAsciiMode()
             this.menuHold.cancel()
             this.liveSession?.cancelModifierTap()
@@ -340,6 +352,7 @@ final class AIMEInputController: IMKInputController {
             guard flags != lastModifiers else { return false }
             guard let keysym = RimeKey.keysym(forVirtualKey: event.keyCode) else { return false }
             if keysym == RimeKey.capsLock {
+                capsSwitch.pressed(asciiBefore: session.option("ascii_mode"), at: Date())
                 // Caps Lock toggles on a single event; report press + release.
                 let mask = RimeKey.capsLockMask(fromCocoaFlags: flags.rawValue)
                 handled = session.processKey(keysym, modifiers: mask)

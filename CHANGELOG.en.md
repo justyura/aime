@@ -12,9 +12,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-13
+
+> Stable release · Developer ID signed · notarization pending
+
 ### Added
 
 - Settings › AI Assistant › OpenAI-compatible endpoint: a new Custom request body field accepts any JSON object whose top-level fields are merged into every request body (model, messages and stream stay under program control). A row of “disable thinking” buttons fills in the right parameter for DeepSeek, Gemini, GLM, Kimi, OpenAI, OpenRouter and Qwen.
+
+### Fixed
+
+- With “Use the Caps Lock key to switch to and from ABC” turned on in System Settings, switching from AIME to ABC and back with Caps Lock left AIME in English until you pressed Shift or restarted the input method (introduced in 0.1.8). AIME now comes back in the Chinese/English state it had before the switch.
 
 ## [0.1.8] - 2026-10-10
 
