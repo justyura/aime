@@ -38,7 +38,7 @@ public struct BackupManager: Sendable {
 
         public var description: String {
             switch self {
-            case .notABackup: "这不是艾么输入法的备份文件"
+            case .notABackup: "这不是韬输入法的备份文件"
             case let .damaged(file): "备份文件已损坏（\(file) 校验不一致），未做任何改动"
             case let .archiveFailed(detail): "压缩或解压失败：\(detail)"
             case let .unsafePath(path): "备份包含不安全的文件或恢复路径：\(path)"
@@ -282,7 +282,7 @@ public struct BackupManager: Sendable {
     /// Discards an opened backup without restoring it.
     public func close(_ opened: Opened) { try? FileManager.default.removeItem(at: opened.staging) }
 
-    public static func suggestedName(now: Date = Date()) -> String { "艾么输入法备份 \(stamp(now)).\(fileExtension)" }
+    public static func suggestedName(now: Date = Date()) -> String { "韬输入法备份 \(stamp(now)).\(fileExtension)" }
 
     // MARK: - Helpers
 

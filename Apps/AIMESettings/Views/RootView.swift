@@ -81,8 +81,8 @@ struct RootView: View {
                         .resizable().frame(width: 32, height: 32)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("艾么输入法").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
-                        Text("AIME · 设置").font(.caption2).foregroundStyle(Theme.secondaryText)
+                        Text("韬输入法").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text("Tao · 设置").font(.caption2).foregroundStyle(Theme.secondaryText)
                     }
                 }
                 .padding(.vertical, 6)

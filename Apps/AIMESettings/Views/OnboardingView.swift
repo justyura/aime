@@ -23,7 +23,7 @@ struct OnboardingView: View {
         var title: String {
             switch self {
             case .welcome: ""
-            case .enable: "启用艾么输入法"
+            case .enable: "启用韬输入法"
             case .scheme: "你平时怎么打字？"
             case .habits: "候选词怎么显示"
             case .apps: "按应用自动切换中英文"
@@ -41,7 +41,7 @@ struct OnboardingView: View {
             case .habits: "三个最常调整的选项，下面是实时预览。"
             case .apps: "看看你装了哪些应用：写代码时默认英文，聊天和写作时默认中文。每个都可以改。"
             case .smart: "都是可选的，之后可以随时在设置里改。数据只留在你的 Mac 上。"
-            case .practice: "切换到艾么输入法，在下面的输入框里跟着做。"
+            case .practice: "切换到韬输入法，在下面的输入框里跟着做。"
             case .done: "设置都已生效。常用的操作记在这里。"
             }
         }
@@ -61,7 +61,7 @@ struct OnboardingView: View {
 
     /// Sample phrases the practice step teaches with (added to the phrase table in use).
     static let samples: [(code: String, text: String, title: String)] = [
-        ("am", "艾么输入法", "产品名"),
+        ("ts", "韬输入法", "产品名"),
         ("gw", "https://aime.zool.app", "官网"),
         ("yx", "hello@zool.app", "邮箱"),
     ]
@@ -275,7 +275,7 @@ private struct WelcomeStep: View {
                     .scaleEffect(shown ? 1 : 0.86)
             }
             VStack(spacing: 10) {
-                Text("欢迎使用艾么输入法").font(.system(size: 30, weight: .bold))
+                Text("欢迎使用韬输入法").font(.system(size: 30, weight: .bold))
                 Text("RIME 的速度与可定制，加上 AI 的翻译与润色。花一分钟，按你的习惯设置好。")
                     .font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     .frame(maxWidth: 460)
@@ -308,9 +308,9 @@ private struct EnableStep: View {
         VStack(alignment: .leading, spacing: 16) {
             EnableStatusCard(done: enabled,
                        title: enabled ? "已添加到输入法" : state == .needsRelogin ? "还差一步：注销或重启" : "还没有添加",
-                       detail: enabled ? "可以用 ⌃空格 或菜单栏的输入法图标切换到艾么输入法。"
-                           : state == .needsRelogin ? "首次安装后，macOS 要在注销或重启一次后才会把艾么输入法放进输入法列表。可以先完成后面的设置，重新登录后再切换。"
-                           : "打开 系统设置 › 键盘 › 输入法 › 编辑…，点左下角 +，在「简体中文」里选「艾么输入法」。")
+                       detail: enabled ? "可以用 ⌃空格 或菜单栏的输入法图标切换到韬输入法。"
+                           : state == .needsRelogin ? "首次安装后，macOS 要在注销或重启一次后才会把韬输入法放进输入法列表。可以先完成后面的设置，重新登录后再切换。"
+                           : "打开 系统设置 › 键盘 › 输入法 › 编辑…，点左下角 +，在「简体中文」里选「韬输入法」。")
             if !enabled {
                 // Kept for the relogin state too: the heuristic behind it could be wrong, and
                 // adding AIME by hand is the next step either way.
@@ -320,7 +320,7 @@ private struct EnableStep: View {
                     Label("打开键盘设置", systemImage: "keyboard")
                 }
                 .controlSize(.large)
-                Text(state == .needsRelogin ? "重新登录后列表里仍没有艾么输入法，再到这里手动添加。"
+                Text(state == .needsRelogin ? "重新登录后列表里仍没有韬输入法，再到这里手动添加。"
                                             : "添加后这里会自动变成已完成。第一次添加后，个别应用可能需要重新打开。")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -457,7 +457,7 @@ private struct SmartStep: View {
             FeatureToggle(isOn: $choices.stats, symbol: "chart.bar.xaxis", title: "输入统计",
                           detail: "每天打了多少字、在哪些应用、2–8 字的高频词。不记句子，只存在本机，可随时清空。")
             FeatureToggle(isOn: $choices.samplePhrases, symbol: "text.quote", title: "添加示例短语",
-                          detail: "打 am 出「艾么输入法」、gw 出官网、yx 出邮箱，下一步就用它们演示；随时可在「自定义短语」删除。")
+                          detail: "打 ts 出「韬输入法」、gw 出官网、yx 出邮箱，下一步就用它们演示；随时可在「自定义短语」删除。")
         }
     }
 }

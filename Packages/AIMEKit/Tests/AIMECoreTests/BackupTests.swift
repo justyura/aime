@@ -22,7 +22,7 @@ struct BackupTests {
             ("aime/features.json", "{\"usageStats\":true}"),
             ("aime/snippets.json", "{\"categories\":[]}"),
             ("aime/cache/big.bin", "cache"),
-            ("custom_phrase_double.txt", "艾么输入法\tam\n"),
+            ("custom_phrase_double.txt", "韬输入法\tam\n"),
             ("my.schema.yaml", "schema: {}\n"),
             ("my_dicts/words.dict.yaml", "---\n"),
             ("lua/helper.lua", "-- lua\n"),

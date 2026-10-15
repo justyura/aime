@@ -21,7 +21,7 @@ struct AIMESettingsApp: App {
     }
 
     var body: some Scene {
-        Window("艾么输入法设置", id: "main") {
+        Window("韬输入法设置", id: "main") {
             // The settings layout needs 900 × 620; onboarding sizes the window per step.
             RootView(selection: $selection)
                 .environment(model)
@@ -49,7 +49,7 @@ private struct AboutCommands: Commands {
 
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
-            Button("关于艾么输入法") {
+            Button("关于韬输入法") {
                 selection = .about
                 openWindow(id: "main")
                 NSApp.activate()

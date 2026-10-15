@@ -48,7 +48,7 @@ struct OverviewView: View {
         VStack(alignment: .leading, spacing: 10) {
             Image("BrandLockup")
                 .resizable().scaledToFit().frame(width: 240, height: 89)
-                .accessibilityLabel("AIME 艾么输入法")
+                .accessibilityLabel("韬输入法")
             Text("中文常新，自在表达。")
                 .font(.title3.weight(.medium)).foregroundStyle(Theme.secondaryText)
             Text("可视化管理方案、外观与词库")
@@ -75,9 +75,9 @@ struct OverviewView: View {
                     title: "输入法",
                     value: !model.isInstalled ? "未安装" : state == .ready ? "已启用" : state == .needsRelogin ? "还差一步" : "已安装",
                     detail: !model.isInstalled ? "运行 scripts/install-dev.sh 或安装 pkg"
-                        : state == .ready ? "按 ⌃空格 切换到艾么输入法即可输入"
-                        : state == .needsRelogin ? "注销或重启一次 Mac，艾么输入法才会出现在输入法列表里"
-                        : "系统设置 › 键盘 › 输入法 中添加艾么输入法",
+                        : state == .ready ? "按 ⌃空格 切换到韬输入法即可输入"
+                        : state == .needsRelogin ? "注销或重启一次 Mac，韬输入法才会出现在输入法列表里"
+                        : "系统设置 › 键盘 › 输入法 中添加韬输入法",
                     symbol: "keyboard.badge.ellipsis", ok: model.isInstalled && state == .ready
                 )
                 StatusCard(
@@ -256,7 +256,7 @@ struct VersionFooter: View {
 
     private var version: some View {
         HStack(spacing: 12) {
-            Text("艾么输入法 \(model.currentVersion.description)\(model.isDistributionBuild ? "" : " · 开发版")")
+            Text("韬输入法 \(model.currentVersion.description)\(model.isDistributionBuild ? "" : " · 开发版")")
                 .font(.caption).foregroundStyle(Theme.secondaryText)
             if let notice = model.updateNotice, model.pendingUpdate == nil {
                 Text(notice).font(.caption).foregroundStyle(Theme.secondaryText)
