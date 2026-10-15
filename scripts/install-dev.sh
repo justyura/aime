@@ -15,6 +15,14 @@ mkdir -p "$DEST"
 rm -rf "$DEST/AIME.app"
 ditto "$ROOT/build/Release/AIME.app" "$DEST/AIME.app"
 "$DEST/AIME.app/Contents/MacOS/AIME" --install || true
+# xcodebuild registers the build products with Launch Services. Copies sharing the
+# bundle id let macOS start the wrong one; clients connected to it lose input once
+# it is gone. Keep only the installed copy registered.
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+for stale in "$ROOT/build/DerivedData/Build/Products/"*/AIME.app "$ROOT/build/DerivedData/Build/Products/"*/"AIME Settings.app" \
+             "$ROOT/build/Release/AIME.app" "$ROOT/build/Release/AIME.app/Contents/Applications/AIME Settings.app"; do
+  [[ -d "$stale" ]] && "$LSREGISTER" -u "$stale" 2>/dev/null || true
+done
 # A copy installed by the .pkg (/Library) has the same bundle id: macOS may launch
 # either one and keeps showing cached icons. Development wants exactly one.
 if [[ -d "/Library/Input Methods/AIME.app" ]]; then

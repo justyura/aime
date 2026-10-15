@@ -213,7 +213,12 @@ final class AIMEInputController: IMKInputController {
     nonisolated override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
         guard let received = event else { return false }
         nonisolated(unsafe) let this = self, client = sender as? any IMKTextInput, keyEvent = received
-        return MainActor.assumeIsolated { this.handle(keyEvent, client: client) }
+        return MainActor.assumeIsolated {
+            let handled = this.handle(keyEvent, client: client)
+            // A finished dictation waits for the pinyin being typed; this key may have committed it.
+            this.flushPendingVoice(client: client)
+            return handled
+        }
     }
 
     private func handle(_ event: NSEvent, client: (any IMKTextInput)?) -> Bool {

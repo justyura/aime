@@ -36,6 +36,9 @@ final class InputEngine {
     let voice = VoiceDictation()
     var voiceTap = RightShiftTap()
     weak var voiceController: AIMEInputController?
+    let voiceHUD = VoiceHUD()
+    /// A finished transcript waiting for the active field to stop composing.
+    var pendingVoiceText: String?
     /// When the user last pressed a key. Option-change bubbles are shown only for
     /// changes the user just caused, never for ones AIME makes itself (app options).
     var lastUserKeyAt = Date.distantPast
