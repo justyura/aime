@@ -44,6 +44,8 @@ targets:
         product: AIMEPanel
       - package: AIMEKit
         product: AIMEAI
+      - package: AIMEKit
+        product: AIMEVoice
       - sdk: InputMethodKit.framework
       - sdk: Carbon.framework
     info:
@@ -56,6 +58,7 @@ targets:
         LSBackgroundOnly: false
         NSPrincipalClass: NSApplication
         LSApplicationCategoryType: public.app-category.utilities
+        NSMicrophoneUsageDescription: 语音输入：轻按右 Shift 说话，录音会发送到你在设置里选择的语音识别服务。
         InputMethodConnectionName: app.zool.inputmethod.aime_Connection
         InputMethodServerControllerClass: AIMEInputController
         InputMethodServerDelegateClass: AIMEInputController

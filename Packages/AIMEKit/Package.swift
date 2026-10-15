@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "AIMECore", targets: ["AIMECore"]),
         .library(name: "AIMEPanel", targets: ["AIMEPanel"]),
         .library(name: "AIMEAI", targets: ["AIMEAI"]),
+        .library(name: "AIMEVoice", targets: ["AIMEVoice"]),
         .executable(name: "aime", targets: ["aime"]),
     ],
     dependencies: [
@@ -42,6 +43,14 @@ let package = Package(
         // Optional AI assistant. Never touches composition buffers or user dictionaries.
         .target(name: "AIMEAI", dependencies: ["AIMECore"], swiftSettings: strictSwift),
 
+        // Voice input (ported from VoxBoardMac): microphone, cloud ASR engines, Right Shift tap.
+        // Swift 5 mode: the engines are callback/queue based and predate strict concurrency.
+        .target(
+            name: "AIMEVoice",
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: [.linkedLibrary("z")]
+        ),
+
         .executableTarget(
             name: "aime",
             dependencies: [
@@ -55,5 +64,6 @@ let package = Package(
         .testTarget(name: "AIMECoreTests", dependencies: ["AIMECore", "RimeKit"], exclude: ["Fixtures"]),
         .testTarget(name: "AIMEPanelTests", dependencies: ["AIMEPanel"]),
         .testTarget(name: "AIMEAITests", dependencies: ["AIMEAI"]),
+        .testTarget(name: "AIMEVoiceTests", dependencies: ["AIMEVoice"], swiftSettings: [.swiftLanguageMode(.v5)]),
     ]
 )

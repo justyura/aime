@@ -72,6 +72,8 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 ZOOL LLC. 原创源码 MIT；发行包 GPL-3.0。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>语音输入：轻按右 Shift 说话，录音会发送到你在设置里选择的语音识别服务。</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>TICapsLockLanguageSwitchCapable</key>

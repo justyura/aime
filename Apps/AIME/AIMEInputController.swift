@@ -16,8 +16,8 @@ final class AIMEInputController: IMKInputController {
     /// Unmasked flags of the last modifier event: device bits tell ⌥ left from right.
     private var lastDeviceFlags: UInt = 0
     private var appOptions = InputEngine.AppOptions()
-    private var bundleID: String?
-    private var hasMarkedText = false
+    private(set) var bundleID: String?
+    var hasMarkedText = false
     private(set) var isComposing = false
     /// Active ⌃⌥P rewrite of the selected text (see AIMEInputController+Polish.swift).
     var polish: PolishSession?
@@ -39,7 +39,7 @@ final class AIMEInputController: IMKInputController {
     var menuShown: (depth: Int, category: Int) = (0, 0)
 
     private var engine: InputEngine { InputEngine.shared }
-    private var textClient: (any IMKTextInput)? { client() as? any IMKTextInput }
+    var textClient: (any IMKTextInput)? { client() as? any IMKTextInput }
     var ownsPanel: Bool { engine.activeController === self }
 
     // MARK: - Session
@@ -58,7 +58,7 @@ final class AIMEInputController: IMKInputController {
     }
 
     /// The session if it belongs to the current engine generation.
-    private var liveSession: RimeSession? {
+    var liveSession: RimeSession? {
         guard let session, sessionGeneration == engine.generation, session.isAlive else { return nil }
         return session
     }
@@ -161,6 +161,7 @@ final class AIMEInputController: IMKInputController {
             this.rememberAsciiMode()
             this.menuHold.cancel()
             this.liveSession?.cancelModifierTap()
+            this.voiceDeactivated()
             this.recentText.reset()
             this.lastModifiers = []
             this.lastDeviceFlags = 0
@@ -190,7 +191,7 @@ final class AIMEInputController: IMKInputController {
         return lastCommitted.isEmpty ? nil : lastCommitted
     }
 
-    private func commitPending(_ client: (any IMKTextInput)?) {
+    func commitPending(_ client: (any IMKTextInput)?) {
         if let session = liveSession, isComposing {
             session.commitComposition()
             sync(client: client ?? textClient)
@@ -235,6 +236,7 @@ final class AIMEInputController: IMKInputController {
             var forwardedToRime = false
             defer { if !forwardedToRime { session.cancelModifierTap() } }
             engine.lastUserKeyAt = Date()
+            if handleVoiceKey(event) { return true }
             if menuHold.isArmed { engine.panel.hideHoldCue(animated: true) }
             menuHold.keyPressed() // a key while the modifier is down is a shortcut, not a hold
             if quickMenu != nil, handleMenuKey(event, client: client) { return true }
@@ -323,6 +325,11 @@ final class AIMEInputController: IMKInputController {
             // has the same flags as the last one and would read as "released", toggling
             // Chinese/English the moment Shift goes down.
             guard deviceFlags != lastDeviceFlags else { return false }
+            // Right Shift belongs to voice input when it is on (see AIMEInputController+Voice.swift).
+            if handleVoiceFlags(event, client: client) {
+                session.cancelModifierTap()
+                return true
+            }
             // Hold-to-open for the quick menu. The release after a fired hold is kept from
             // librime, where a lone modifier tap can switch Chinese/English.
             menuHold.key = engine.features.menuHoldKey
@@ -462,7 +469,7 @@ final class AIMEInputController: IMKInputController {
     /// (e.g. a raw underline style) do not survive the IMK XPC bridge on macOS 26+, and
     /// clients then insert the preedit as ordinary text — the raw pinyin stays in the
     /// document next to the committed characters.
-    private func markedText(_ text: String, converted: Int, selectedEnd: Int) -> NSAttributedString {
+    func markedText(_ text: String, converted: Int, selectedEnd: Int) -> NSAttributedString {
         let result = NSMutableAttributedString(string: text)
         let length = (text as NSString).length
         guard length > 0 else { return result }

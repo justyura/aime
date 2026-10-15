@@ -1,5 +1,6 @@
 import AIMECore
 import AIMEPanel
+import AIMEVoice
 import AppKit
 import InputMethodKit
 import os
@@ -31,6 +32,10 @@ final class InputEngine {
     /// Incremented on every (re)initialization so controllers can drop stale sessions.
     private(set) var generation = 0
     weak var activeController: AIMEInputController?
+    /// Voice input: one dictation at a time, delivered to `voiceController`'s field.
+    let voice = VoiceDictation()
+    var voiceTap = RightShiftTap()
+    weak var voiceController: AIMEInputController?
     /// When the user last pressed a key. Option-change bubbles are shown only for
     /// changes the user just caused, never for ones AIME makes itself (app options).
     var lastUserKeyAt = Date.distantPast
