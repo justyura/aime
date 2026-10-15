@@ -34,7 +34,7 @@ extension InputEngine {
         center.requestAuthorization(options: [.alert, .provisional]) { granted, _ in
             guard granted else { return }
             let content = UNMutableNotificationContent()
-            content.title = String(localized: "艾么输入法有新版本")
+            content.title = String(localized: "韬输入法有新版本")
             content.body = String(localized: "\(release.version) 已发布，打开设置即可更新。")
             center.add(UNNotificationRequest(identifier: "app.zool.aime.update", content: content, trigger: nil))
         }

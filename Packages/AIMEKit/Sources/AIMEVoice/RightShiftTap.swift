@@ -3,6 +3,10 @@ import Foundation
 /// Recognizes a lone tap of Right Shift from IMK `flagsChanged` events: press with no
 /// other modifier, release within 0.6 s, and no key in between (call `cancel()` on any
 /// keyDown). Works on keyboards that omit the left/right device bits.
+///
+/// Some setups echo a tap as a second, synthetic press + release a few ms apart. A press
+/// shorter than `minimumHold` is not a human tap, and a tap within `debounce` of the
+/// previous one is ignored; otherwise the echo would stop a dictation it just started.
 public struct RightShiftTap: Sendable {
     public enum Event: Equatable, Sendable { case none, began, triggered, cancelled }
 
@@ -12,8 +16,11 @@ public struct RightShiftTap: Sendable {
     static let rightShiftDevice: UInt = 0x0004
     static let shiftDevices: UInt = 0x0006
     static let window: ClosedRange<TimeInterval> = 0...0.6
+    static let minimumHold: TimeInterval = 0.015
+    static let debounce: TimeInterval = 0.3
 
     private var pressedAt: TimeInterval?
+    private var lastTriggerAt: TimeInterval?
 
     public init() {}
 
@@ -39,7 +46,11 @@ public struct RightShiftTap: Sendable {
         }
         guard let pressedAt else { return .none }
         self.pressedAt = nil
-        guard plain == 0, Self.window.contains(timestamp - pressedAt) else { return .cancelled }
+        let held = timestamp - pressedAt
+        guard plain == 0, Self.window.contains(held) else { return .cancelled }
+        guard held >= Self.minimumHold else { return .cancelled }
+        if let last = lastTriggerAt, timestamp - last < Self.debounce { return .cancelled }
+        lastTriggerAt = timestamp
         return .triggered
     }
 }

@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         InputEngine.shared.start()
+        InputSourceGuard.shared.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
