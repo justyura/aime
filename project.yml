@@ -116,6 +116,8 @@ targets:
         product: AIMEPanel
       - package: AIMEKit
         product: AIMEAI
+      - package: AIMEKit
+        product: AIMEVoice
     info:
       path: Apps/AIMESettings/Info.plist
       properties:

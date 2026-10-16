@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Pane: String, CaseIterable, Identifiable, Hashable {
-    case overview, schemas, general, switching, spelling, keys, appearance, apps, dictionaries, phrases, snippets, sync, stats, ai, advanced, about
+    case overview, schemas, general, switching, spelling, keys, appearance, apps, dictionaries, phrases, snippets, sync, stats, ai, voice, advanced, about
 
     var id: String { rawValue }
 
@@ -21,6 +21,7 @@ enum Pane: String, CaseIterable, Identifiable, Hashable {
         case .sync: "同步与备份"
         case .stats: "输入统计"
         case .ai: "AI 助手"
+        case .voice: "语音输入"
         case .advanced: "高级"
         case .about: "关于"
         }
@@ -42,6 +43,7 @@ enum Pane: String, CaseIterable, Identifiable, Hashable {
         case .sync: "arrow.triangle.2.circlepath"
         case .stats: "chart.bar.xaxis"
         case .ai: "wand.and.sparkles"
+        case .voice: "mic"
         case .advanced: "wrench.and.screwdriver"
         case .about: "info.circle"
         }
@@ -60,7 +62,7 @@ enum Pane: String, CaseIterable, Identifiable, Hashable {
 
     @MainActor static let sections: [(LocalizedStringKey, [Pane])] = [
         ("", [.overview]),
-        ("智能", [.ai, .stats]),
+        ("智能", [.ai, .voice, .stats]),
         ("输入", [.schemas, .general, .switching, .spelling, .keys]),
         ("个性化", [.appearance, .apps]),
         ("词库", [.dictionaries, .phrases, .snippets, .sync]),
@@ -145,6 +147,7 @@ struct RootView: View {
         case .sync: SyncView()
         case .stats: UsageStatsView()
         case .ai: AIAssistantView()
+        case .voice: VoiceInputView()
         case .advanced: AdvancedView()
         case .about: AboutView()
         default: CatalogPane(pane: pane)

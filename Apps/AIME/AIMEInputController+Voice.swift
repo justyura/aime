@@ -1,5 +1,6 @@
 import AIMEVoice
 import AppKit
+import AVFoundation
 import InputMethodKit
 
 /// 语音输入: a lone tap of Right Shift starts dictation, another tap stops it.
@@ -64,20 +65,30 @@ extension AIMEInputController {
         let engine = InputEngine.shared
         engine.voiceController = self
         engine.pendingVoiceText = nil
+        // Diagnostics: states, engine and permission only — never the transcript.
+        DebugLog.write("voice start engine=\(VoiceSettings.engine.rawValue) mic=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue) keys=\(VoiceSettings.engine.fields.map { "\($0.rawValue):\(VoiceSettings.source($0))" })")
         voice.onPartial = { text in InputEngine.shared.showVoiceBubble("🎙 " + text) }
         voice.onStateChange = { state in
             let engine = InputEngine.shared
+            DebugLog.write("voice state=\(state)")
             switch state {
             case .recording: engine.showVoiceBubble("🎙 聆听中…  右⇧ 结束")
             case .finishing: engine.showVoiceBubble("🎙 \(engine.voice.activeEngine.displayName) 转写中…")
             case .idle: break
             }
         }
-        voice.onNotice = { message in InputEngine.shared.showStatus(message) }
+        voice.onNotice = { message in
+            DebugLog.write("voice notice: \(message)")
+            InputEngine.shared.showVoiceNotice(message)
+        }
         voice.onFinal = { text in
             let engine = InputEngine.shared
             engine.voiceController = nil
-            guard !text.isEmpty else { return engine.voiceHUD.hide() }
+            DebugLog.write("voice final length=\(text.count)")
+            guard !text.isEmpty else {
+                if !engine.voiceNoticeShowing { engine.voiceHUD.hide() }
+                return
+            }
             engine.pendingVoiceText = text
             (engine.activeController)?.flushPendingVoice(client: nil) ?? engine.deliverVoiceWithoutField()
         }
@@ -106,7 +117,22 @@ extension AIMEInputController {
 
 extension InputEngine {
     func showVoiceBubble(_ text: String) {
+        voiceNoticeTask?.cancel()
+        voiceNoticeTask = nil
         voiceHUD.show(text, near: activeController?.cursorRect() ?? .zero)
+    }
+
+    var voiceNoticeShowing: Bool { voiceNoticeTask != nil }
+
+    /// Errors and hints stay up long enough to read (the status bubble is gone in 0.9 s).
+    func showVoiceNotice(_ message: String) {
+        showVoiceBubble("⚠️ " + message)
+        voiceNoticeTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, let self else { return }
+            self.voiceNoticeTask = nil
+            if self.pendingVoiceText == nil, !self.voice.isActive { self.voiceHUD.hide() }
+        }
     }
 
     /// No field to type into: keep the transcript on the clipboard instead of losing it.

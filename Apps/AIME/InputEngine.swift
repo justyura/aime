@@ -39,6 +39,7 @@ final class InputEngine {
     let voiceHUD = VoiceHUD()
     /// A finished transcript waiting for the active field to stop composing.
     var pendingVoiceText: String?
+    var voiceNoticeTask: Task<Void, Never>?
     /// When the user last pressed a key. Option-change bubbles are shown only for
     /// changes the user just caused, never for ones AIME makes itself (app options).
     var lastUserKeyAt = Date.distantPast

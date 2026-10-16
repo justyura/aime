@@ -47,6 +47,7 @@ let package = Package(
         // Swift 5 mode: the engines are callback/queue based and predate strict concurrency.
         .target(
             name: "AIMEVoice",
+            dependencies: ["AIMEAI"],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: [.linkedLibrary("z")]
         ),
