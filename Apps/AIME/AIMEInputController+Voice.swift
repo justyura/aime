@@ -46,10 +46,7 @@ extension AIMEInputController {
         let engine = InputEngine.shared
         if engine.voiceTap.cancel(), !voice.isActive { voice.cancelPrepared() } // Shift+key: a chord, not a tap
         guard voice.isActive, event.keyCode == 53, !isComposing, draft.isEmpty else { return false }
-        voice.cancel()
-        engine.pendingVoiceText = nil
-        engine.voiceController = nil
-        engine.voiceHUD.hide()
+        engine.cancelVoice()
         engine.showStatus("已取消语音输入")
         return true
     }
@@ -116,6 +113,18 @@ extension AIMEInputController {
 }
 
 extension InputEngine {
+    /// Esc or the bubble's ×: stop listening or transcribing, drop anything waiting to
+    /// be inserted, close the bubble.
+    func cancelVoice() {
+        DebugLog.write("voice cancelled by user state=\(voice.state)")
+        voice.cancel()
+        pendingVoiceText = nil
+        voiceController = nil
+        voiceNoticeTask?.cancel()
+        voiceNoticeTask = nil
+        voiceHUD.hide()
+    }
+
     func showVoiceBubble(_ text: String) {
         voiceNoticeTask?.cancel()
         voiceNoticeTask = nil

@@ -36,7 +36,11 @@ final class InputEngine {
     let voice = VoiceDictation()
     var voiceTap = RightShiftTap()
     weak var voiceController: AIMEInputController?
-    let voiceHUD = VoiceHUD()
+    let voiceHUD: VoiceHUD = {
+        let hud = VoiceHUD()
+        hud.onClose = { InputEngine.shared.cancelVoice() }
+        return hud
+    }()
     /// A finished transcript waiting for the active field to stop composing.
     var pendingVoiceText: String?
     var voiceNoticeTask: Task<Void, Never>?

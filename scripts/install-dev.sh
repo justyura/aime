@@ -23,6 +23,9 @@ for stale in "$ROOT/build/DerivedData/Build/Products/"*/AIME.app "$ROOT/build/De
              "$ROOT/build/Release/AIME.app" "$ROOT/build/Release/AIME.app/Contents/Applications/AIME Settings.app"; do
   [[ -d "$stale" ]] && "$LSREGISTER" -u "$stale" 2>/dev/null || true
 done
+# Spotlight re-registers any app bundle it finds, so the staged copy goes once it is
+# installed (build-app.sh recreates it on every build).
+rm -rf "$ROOT/build/Release/AIME.app"
 # A copy installed by the .pkg (/Library) has the same bundle id: macOS may launch
 # either one and keeps showing cached icons. Development wants exactly one.
 if [[ -d "/Library/Input Methods/AIME.app" ]]; then
