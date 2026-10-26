@@ -1128,16 +1128,28 @@ final class ElevenLabsTranscriptionClient: RealtimeASREngine {
     private let model: String
     private let queue = DispatchQueue(label: "com.wentao.voxboardmac.elevenlabs-transcription")
     private var audio = Data()
-    private var requestTask: URLSessionDataTask?
+    /// Requests in flight. A stalled connection (seen through proxies: TLS up, then
+    /// nothing) used to block for the whole timeout; now a second copy is sent after
+    /// `hedgeDelay` and the first answer wins.
+    private var inFlight: [Int: URLSessionDataTask] = [:]
     private var uploadAttempts = 0
+    private var hedgeTimer: DispatchWorkItem?
+    static let maxAttempts = 3
     private var started = false
     private var finishing = false
     private var closed = false
 
-    init(apiKey: String, model: String) {
+    private let session: URLSession
+    private let hedgeDelayOverride: TimeInterval?
+
+    init(apiKey: String, model: String, session: URLSession = .shared, hedgeDelay: TimeInterval? = nil) {
         self.apiKey = apiKey
         self.model = model
+        self.session = session
+        self.hedgeDelayOverride = hedgeDelay
     }
+
+    private var currentHedgeDelay: TimeInterval { hedgeDelayOverride ?? Self.hedgeDelay(audioBytes: audio.count) }
 
     func start() {
         queue.async { [weak self] in
@@ -1173,10 +1185,16 @@ final class ElevenLabsTranscriptionClient: RealtimeASREngine {
         queue.async { [weak self] in
             guard let self, !self.closed else { return }
             self.closed = true
-            self.requestTask?.cancel()
-            self.requestTask = nil
+            self.stopRequests()
             self.audio.removeAll()
         }
+    }
+
+    /// How long to wait for an answer before sending another copy: upload time grows with
+    /// the recording (32 KB/s of PCM), transcription is fast. 3 s for a short phrase.
+    static func hedgeDelay(audioBytes: Int) -> TimeInterval {
+        let seconds = Double(audioBytes) / 32_000
+        return min(30, 3 + seconds / 8)
     }
 
     static func makeRequest(pcm: Data, apiKey: String, model: String) -> URLRequest {
@@ -1190,7 +1208,8 @@ final class ElevenLabsTranscriptionClient: RealtimeASREngine {
 
         var request = URLRequest(url: elevenLabsTranscriptionEndpoint)
         request.httpMethod = "POST"
-        request.timeoutInterval = 120
+        // Idle timeout between packets; a stall is also covered by hedging.
+        request.timeoutInterval = 30
         request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
         request.setValue(form.contentType, forHTTPHeaderField: "Content-Type")
         request.httpBody = form.finalized()
@@ -1213,38 +1232,63 @@ final class ElevenLabsTranscriptionClient: RealtimeASREngine {
     }
 
     private func upload() {
+        guard !closed, uploadAttempts < Self.maxAttempts else { return }
         uploadAttempts += 1
+        let attempt = uploadAttempts
         let request = Self.makeRequest(pcm: audio, apiKey: apiKey, model: model)
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self else { return }
             self.queue.async {
                 guard !self.closed else { return }
+                self.inFlight[attempt] = nil
                 if let error {
-                    // 整段录音只在内存里,断网就全丢;传输层失败重传一次(HTTP 错误不重试)。
-                    if self.uploadAttempts < 2 {
-                        NSLog("ElevenLabs upload failed, retrying: %@", error.localizedDescription)
+                    if (error as? URLError)?.code == .cancelled { return }
+                    NSLog("ElevenLabs upload attempt %d failed: %@", attempt, error.localizedDescription)
+                    // The recording only lives in memory: retry transport failures. Another
+                    // copy may still be on its way; only give up when none is left.
+                    if self.uploadAttempts < Self.maxAttempts {
                         self.upload()
-                        return
+                    } else if self.inFlight.isEmpty {
+                        self.fail("ElevenLabs 请求失败：\(error.localizedDescription)")
                     }
-                    self.fail("ElevenLabs 请求失败：\(error.localizedDescription)")
                     return
                 }
                 let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                 switch Self.parseResponse(data, status: status) {
                 case let .success(text): self.complete(with: text)
-                case let .failure(error): self.fail(error.message)
+                case let .failure(error): self.fail(error.message) // HTTP errors are not retried
                 }
             }
         }
-        requestTask = task
+        inFlight[attempt] = task
         task.resume()
+        scheduleHedge()
+    }
+
+    private func scheduleHedge() {
+        hedgeTimer?.cancel()
+        guard uploadAttempts < Self.maxAttempts else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, !self.closed, !self.inFlight.isEmpty else { return }
+            NSLog("ElevenLabs: no answer after %.1fs, sending another copy", self.currentHedgeDelay)
+            self.upload()
+        }
+        hedgeTimer = work
+        queue.asyncAfter(deadline: .now() + currentHedgeDelay, execute: work)
+    }
+
+    private func stopRequests() {
+        hedgeTimer?.cancel()
+        hedgeTimer = nil
+        inFlight.values.forEach { $0.cancel() }
+        inFlight.removeAll()
     }
 
     private func complete(with text: String) {
         guard !closed else { return }
         onTranscript?(text, true)
         closed = true
-        requestTask = nil
+        stopRequests()
         audio.removeAll()
     }
 
@@ -1252,8 +1296,7 @@ final class ElevenLabsTranscriptionClient: RealtimeASREngine {
         guard !closed else { return }
         onError?(message)
         closed = true
-        requestTask?.cancel()
-        requestTask = nil
+        stopRequests()
         audio.removeAll()
     }
 }
